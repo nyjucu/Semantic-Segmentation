@@ -88,12 +88,12 @@ if __name__ == "__main__":
 
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-    checkpointer = ModelCheckpoint('model_for_nuclei.h5', verbose=1, save_best_only=True)
+    # checkpointer = ModelCheckpoint('segmentation.keras', verbose=1, save_best_only=True)
 
     callbacks = [
         EarlyStopping(patience=2, monitor='val_loss'),
         TensorBoard(log_dir='logs'),
-        checkpointer
+        # checkpointer
     ]
 
     datagen = ImageDataGenerator(
