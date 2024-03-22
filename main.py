@@ -2,6 +2,7 @@ import pickle as pkl
 import numpy as np
 import tensorflow as tf
 
+from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping, TensorBoard
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import (Conv2D, MaxPool2D, Conv2DTranspose, Input, Dropout, Concatenate, BatchNormalization)
@@ -65,6 +66,7 @@ def dice_loss(y_true, y_pred):
 
 if __name__ == "__main__":
     X_train, y_train, X_test = load_pickle()
+    X_train, X_test2, y_train, y_test2 = train_test_split(X_train, y_train, test_size=0.2)
 
     inputs = Input(shape=INPUT_SHAPE)
     normed_inputs = tf.keras.layers.Lambda(lambda x: x / 255)(inputs)
@@ -91,16 +93,23 @@ if __name__ == "__main__":
     # checkpointer = ModelCheckpoint('segmentation.keras', verbose=1, save_best_only=True)
 
     callbacks = [
-        EarlyStopping(patience=2, monitor='val_loss'),
+        EarlyStopping(patience=2, monitor='loss'),
         TensorBoard(log_dir='logs'),
         # checkpointer
     ]
 
     datagen = ImageDataGenerator(
         rotation_range=10,
-        horizontal_flip=True
+        horizontal_flip=True,
+        vertical_flip=True,
+        zoom_range=0.1
     )
 
-    history = model.fit(X_train, y_train, validation_split=0.1, batch_size=16, epochs=100, verbose=1, callbacks=callbacks)
+    BATCH_SIZE = 16
+
+    history = model.fit(X_train, y_train, batch_size=BATCH_SIZE, epochs=16, verbose=1)
+    _, accuracy = model.evaluate(X_test2, y_test2)
+
+    print(f"Accuracy of the model: {accuracy}")
 
     model.save("segmentation.keras")
